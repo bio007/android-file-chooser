@@ -2,19 +2,22 @@ package com.obsez.android.lib.filechooser.tool;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
 import android.util.SparseArray;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 import com.obsez.android.lib.filechooser.R;
 import com.obsez.android.lib.filechooser.internals.FileUtil;
@@ -96,7 +99,6 @@ public class DirAdapter extends ArrayAdapter<File> {
         TextView tvName = view.findViewById(R.id.text);
         TextView tvSize = view.findViewById(R.id.txt_size);
         TextView tvDate = view.findViewById(R.id.txt_date);
-        //ImageView ivIcon = (ImageView) view.findViewById(R.id.icon);
 
         tvDate.setVisibility(View.VISIBLE);
         tvName.setText(file.getName());
@@ -125,10 +127,16 @@ public class DirAdapter extends ArrayAdapter<File> {
             tvDate.setText(_formatter.format(new Date(file.lastModified())));
         }
         if (file.isHidden()) {
-            final PorterDuffColorFilter filter = new PorterDuffColorFilter(0x80ffffff,
-                PorterDuff.Mode.SRC_ATOP);
-            icon.mutate().setColorFilter(filter);
+            final PorterDuffColorFilter filter = new PorterDuffColorFilter(0x80ffffff, PorterDuff.Mode.SRC_ATOP);
+            icon = icon.mutate();
+            icon.setColorFilter(filter);
         }
+
+        TypedValue typedValue = new TypedValue();
+        Resources.Theme theme = getContext().getTheme();
+        theme.resolveAttribute(android.R.attr.textColor, typedValue, true);
+        icon.setTint(typedValue.data);
+
         tvName.setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null);
 
         View root = view.findViewById(R.id.root);

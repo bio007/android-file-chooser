@@ -11,7 +11,6 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static android.view.WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
 import static android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
 import static android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE;
-
 import static com.obsez.android.lib.filechooser.ChooserDialog.CHOOSE_MODE_DELETE;
 import static com.obsez.android.lib.filechooser.ChooserDialog.CHOOSE_MODE_NORMAL;
 import static com.obsez.android.lib.filechooser.ChooserDialog.CHOOSE_MODE_SELECT_MULTIPLE;
@@ -25,9 +24,6 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewCompat;
-import android.support.v7.view.ContextThemeWrapper;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.view.View;
@@ -40,6 +36,10 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Space;
 import android.widget.Toast;
+
+import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
 
 import com.obsez.android.lib.filechooser.internals.FileUtil;
 import com.obsez.android.lib.filechooser.internals.UiUtil;
@@ -530,7 +530,7 @@ class onShowListener implements DialogInterface.OnShowListener {
                             if (_c.get()._chooseMode == CHOOSE_MODE_SELECT_MULTIPLE) {
                                 boolean success = true;
                                 for (File file : _c.get()._adapter.getSelected()) {
-                                    _c.get()._result.onChoosePath(file.getAbsolutePath(), file);
+                                    _c.get()._result.onChoosePath(file.getAbsolutePath(), file, false);
                                     if (success) {
                                         try {
                                             FileUtil.deleteFileRecursively(file);

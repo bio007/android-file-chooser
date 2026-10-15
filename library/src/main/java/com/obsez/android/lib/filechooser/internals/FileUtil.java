@@ -5,10 +5,11 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
 import android.os.storage.StorageManager;
-import android.support.annotation.NonNull;
 import android.text.InputFilter;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+
+import androidx.annotation.NonNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,27 +83,15 @@ public class FileUtil {
             Method isRemovableMtd = storageVolumeClazz.getMethod("isRemovable");
             Object result = getVolumeList.invoke(storageManager);
             final int length = Array.getLength(result);
-            //Timber.d("---length--" + length);
             for (int i = 0; i < length; i++) {
                 Object storageVolumeElement = Array.get(result, i);
-                //Timber.d("---Object--" + storageVolumeElement + "i==" + i);
                 String path = (String) getPath.invoke(storageVolumeElement);
-                //Timber.d("---path_total--" + path);
                 boolean removable = (Boolean) isRemovableMtd.invoke(storageVolumeElement);
                 if (isRemovable == removable) {
-                    //Timber.d("---path--" + path);
                     return path;
                 }
             }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
+        } catch (ClassNotFoundException | InvocationTargetException | NoSuchMethodException | IllegalAccessException ignored) { }
         return Environment.getExternalStorageDirectory().getAbsolutePath();
     }
 

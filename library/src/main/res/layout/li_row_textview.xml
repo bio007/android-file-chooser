@@ -1,53 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root"
-    android:theme="?attr/fileChooserListItemStyle"
     style="?attr/fileChooserListItemStyle"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:theme="?attr/fileChooserListItemStyle"
     tools:ignore="ResourceName"
     tools:theme="@style/FileChooserListItemStyle">
 
     <TextView
         android:id="@+id/text"
         style="?attr/fileChooserTextNameStyle"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="false"
-        android:layout_centerVertical="false"
-        android:layout_toRightOf="@+id/icon"
-        tools:text="@string/title_choose" />
+        android:layout_marginBottom="8dp"
+        android:ellipsize="middle"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        app:layout_constraintBottom_toTopOf="@id/txt_date"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_goneMarginBottom="0dp"
+        tools:text="very long file name so it cannot fit the screen at all and goes forever.txt" />
 
     <TextView
         android:id="@+id/txt_size"
         style="?attr/fileChooserTextSizeStyle"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/text"
-        android:layout_alignLeft="@+id/text"
-        android:layout_toLeftOf="@+id/txt_date"
-        tools:text="@string/title_choose" />
+        app:layout_constraintBottom_toBottomOf="@id/txt_date"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/txt_date"
+        tools:text="86KB" />
 
     <TextView
         android:id="@+id/txt_date"
         style="?attr/fileChooserTextDateStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/text"
-        android:layout_alignRight="@+id/text"
-        tools:text="@string/title_choose" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@id/text"
+        app:layout_constraintTop_toBottomOf="@id/text"
+        tools:text="20:33:11" />
 
-    <ImageView
-        android:id="@+id/icon"
-        style="?attr/fileChooserFileIconStyle"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_alignParentLeft="true"
-        android:contentDescription="@string/title_choose"
-        android:visibility="gone"
-        android:src="@drawable/ic_folder"
-        app:srcCompat="@drawable/ic_folder" />
-
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

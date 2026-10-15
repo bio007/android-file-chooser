@@ -14,15 +14,6 @@ import android.content.DialogInterface;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
-import android.support.annotation.StringRes;
-import android.support.annotation.StyleRes;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewCompat;
-import android.support.v7.view.ContextThemeWrapper;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -38,6 +29,16 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.DrawableRes;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.annotation.StringRes;
+import androidx.annotation.StyleRes;
+import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
 
 import com.obsez.android.lib.filechooser.internals.ExtFileFilter;
 import com.obsez.android.lib.filechooser.internals.FileUtil;
@@ -62,7 +63,7 @@ public class ChooserDialog implements AdapterView.OnItemClickListener, DialogInt
     AdapterView.OnItemLongClickListener, AdapterView.OnItemSelectedListener {
     @FunctionalInterface
     public interface Result {
-        void onChoosePath(String dir, File dirFile);
+        void onChoosePath(String dir, File dirFile, boolean dialogDismissed);
     }
 
     /**
@@ -269,7 +270,7 @@ public class ChooserDialog implements AdapterView.OnItemClickListener, DialogInt
     }
 
     public ChooserDialog withOptionIcons(@DrawableRes int optionsIconRes, @DrawableRes int createDirIconRes,
-        @DrawableRes int deleteRes) {
+                                         @DrawableRes int deleteRes) {
         this._optionsIconRes = optionsIconRes;
         this._createDirIconRes = createDirIconRes;
         this._deleteIconRes = deleteRes;
@@ -464,15 +465,13 @@ public class ChooserDialog implements AdapterView.OnItemClickListener, DialogInt
 
     public ChooserDialog build() {
         TypedArray ta = _context.obtainStyledAttributes(R.styleable.FileChooser);
-        final AlertDialog.Builder builder = new AlertDialog.Builder(_context,
-            ta.getResourceId(R.styleable.FileChooser_fileChooserDialogStyle, R.style.FileChooserDialogStyle));
+        final AlertDialog.Builder builder = new AlertDialog.Builder(_context);
         final int style = ta.getResourceId(R.styleable.FileChooser_fileChooserListItemStyle,
             R.style.FileChooserListItemStyle);
         ta.recycle();
         final Context context = new ContextThemeWrapper(_context, style);
         ta = context.obtainStyledAttributes(R.styleable.FileChooser);
-        final int listview_item_selector = ta.getResourceId(R.styleable.FileChooser_fileListItemFocusedDrawable,
-            R.drawable.listview_item_selector);
+        final int listview_item_selector = ta.getResourceId(R.styleable.FileChooser_fileListItemFocusedDrawable, R.drawable.listview_item_selector);
         ta.recycle();
 
         if (_rowLayoutRes != -1) {
@@ -512,7 +511,7 @@ public class ChooserDialog implements AdapterView.OnItemClickListener, DialogInt
             // choosing folder, or multiple files picker
             DialogInterface.OnClickListener listener = (dialog, which) -> {
                 if (_result != null) {
-                    _result.onChoosePath(_currentDir.getAbsolutePath(), _currentDir);
+                    _result.onChoosePath(_currentDir.getAbsolutePath(), _currentDir, false);
                 }
             };
             if (_okRes != -1) {
@@ -546,7 +545,7 @@ public class ChooserDialog implements AdapterView.OnItemClickListener, DialogInt
         _alertDialog = builder.create();
 
         _alertDialog.setCanceledOnTouchOutside(this._cancelOnTouchOutside);
-        _alertDialog.setOnShowListener(new onShowListener(this, listview_item_selector));
+        _alertDialog.setOnShowListener(new onShowListener(this, R.drawable.button_selector));
 
         _list = _alertDialog.getListView();
         _list.setOnItemClickListener(this);
@@ -589,7 +588,7 @@ public class ChooserDialog implements AdapterView.OnItemClickListener, DialogInt
             _permissionListener = new PermissionsUtil.OnPermissionListener() {
                 @Override
                 public void onPermissionGranted(String[] permissions) {
-                    boolean show = false;
+                    boolean show = permissions.length == 0;
                     for (String permission : permissions) {
                         if (permission.equals(Manifest.permission.READ_EXTERNAL_STORAGE)) {
                             show = true;
@@ -613,13 +612,15 @@ public class ChooserDialog implements AdapterView.OnItemClickListener, DialogInt
 
                 @Override
                 public void onPermissionDenied(String[] permissions) {
-                    //
+                    if (_cancelListener != null) {
+                        _cancelListener.onCancel(_alertDialog);
+                    }
+                    dismiss();
                 }
 
                 @Override
                 public void onShouldShowRequestPermissionRationale(final String[] permissions) {
-                    Toast.makeText(_context, "You denied the Read/Write permissions on SDCard.",
-                        Toast.LENGTH_LONG).show();
+                    Toast.makeText(_context, "Required permission to access storage denied.", Toast.LENGTH_LONG).show();
                 }
             };
         }
@@ -627,7 +628,7 @@ public class ChooserDialog implements AdapterView.OnItemClickListener, DialogInt
         final String[] permissions =
             _enableOptions ? new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE}
-                : new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
+                : new String[0];
 
         PermissionsUtil.checkPermissions(_context, _permissionListener, permissions);
 
@@ -860,10 +861,13 @@ public class ChooserDialog implements AdapterView.OnItemClickListener, DialogInt
                             _adapter.getIndexStack().push(position);
                         }
                     } else if ((!_dirOnly) && _result != null) {
-                        _alertDialog.dismiss();
-                        _result.onChoosePath(file.getAbsolutePath(), file);
+                        final boolean dismissDialog = _folderNavToCB == null && _entries.size() <= 2;
+                        if (dismissDialog) {
+                            _alertDialog.dismiss();
+                        }
+                        _result.onChoosePath(file.getAbsolutePath(), file, dismissDialog);
                         if (_enableMultiple) {
-                            _result.onChoosePath(_currentDir.getAbsolutePath(), _currentDir);
+                            _result.onChoosePath(_currentDir.getAbsolutePath(), _currentDir, dismissDialog);
                         }
                         return;
                     }
@@ -883,7 +887,7 @@ public class ChooserDialog implements AdapterView.OnItemClickListener, DialogInt
                             _chooseMode = CHOOSE_MODE_NORMAL;
                             _positiveBtn.setVisibility(View.INVISIBLE);
                         }
-                        _result.onChoosePath(file.getAbsolutePath(), file);
+                        _result.onChoosePath(file.getAbsolutePath(), file, false);
                         return;
                     }
                     break;
@@ -914,7 +918,7 @@ public class ChooserDialog implements AdapterView.OnItemClickListener, DialogInt
             return true;
         }
         if (_adapter.isSelected(position)) return true;
-        _result.onChoosePath(file.getAbsolutePath(), file);
+        _result.onChoosePath(file.getAbsolutePath(), file, false);
         _adapter.selectItem(position);
         _chooseMode = CHOOSE_MODE_SELECT_MULTIPLE;
         _positiveBtn.setVisibility(View.VISIBLE);

@@ -2,7 +2,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" tools:ignore="ResourceName,PrivateResource">
 
     <public name="FileChooserDialogStyle" type="style" />
-    <style name="FileChooserDialogStyle" parent="@android:style/Theme.Material.Light.Dialog.Alert">
+    <style name="FileChooserDialogStyle" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
         <item name="android:windowTitleStyle">@style/FileChooserTitleStyle</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowMinWidthMajor">@android:dimen/dialog_min_width_major</item>
@@ -11,8 +11,6 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:windowIsFloating">true</item>
-        <item name="android:buttonBarStyle">@android:style/Holo.Light.ButtonBar.AlertDialog</item>
-        <item name="android:buttonBarButtonStyle">@style/FileChooserButtonStyle</item>
     </style>
 
 </resources>
